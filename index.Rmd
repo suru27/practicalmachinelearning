@@ -1,0 +1,172 @@
+---
+title: "practical machine learning assignment"
+output: html_document
+---
+
+# Assignment Objective
+
+The assignment requires to predict the manner in which various subjects did the exercise by identifying true value for classe variable highlighting model building details, cross validation technique and error measure. 
+
+
+# Solution Approach
+
+The solution approach consists of following steps:
+
+Loading train and test data
+Data Cleaning and data preparation for exploratory data analysis
+Training and Validation data creation
+Exploratory data analysis
+Model building and cross validation
+Model Testing and model finalization
+Predicting Outcome on test data
+
+### Loading train and test data : 
+Load train and test data csv files in R
+
+### Data Cleaning and data preparation for exploratory data analysis: 
+As final prediction is required for test data which
+has 20 rows, test data should have sufficient values for independent variables and hence, only those features have been considered which has less than 20% of missing values. Also, classe has been renamed from 0 to 4 for A to E respectively.
+
+### Training and Validation data creation: 
+Training and Validation data set has been created with 80:20 ratio
+
+### Exploratory data analysis: 
+Box plot of dependent variable has been plotted with respect to various independent features
+and some fo the key features have been plotted. Also, distribution of unique value for dependent variable is checked for
+understanding of distribution.
+
+### Model building and cross validation:
+CART based decision tree has been used to build the classification model with
+3 fold repeat cross validation method on training dataset. The output of decision tree and significant features have been plotted for better understanding of classification drivers.
+
+### Model Testing and model finalization:
+Out of sample error and model accuracy has been tested on validation dataset. Once an acceptable model accuracy is reached, the model is finalized.
+
+
+### Predicting Outcome on test data:
+The final model is selected and used to predict classe for test data set using selected classification model
+
+```{r}
+library(ISLR)
+library(caret)
+library(tree)
+library(caret)
+library(party)
+library(partykit)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(readr)
+library(xgboost)
+library(RANN)
+library(Metrics)
+library(DiagrammeR)
+library(readr)
+library(dplyr)
+library(nnet)
+library(data.table)
+library(knitr)
+library(rmarkdown)
+
+train<-read.csv("pml-training.csv")
+test<-read.csv("pml-testing.csv")
+str(train[,150:160])
+
+################        Data Cleaning starts       ##########################
+
+
+# Identify columns with missing value from test data set
+na_count <-sapply(test, function(y) sum(length(which(is.na(y)))))
+na_count <- data.frame(na_count)
+na_count<-cbind(colnames(test),na_count)
+head(na_count)
+colnames(na_count)<-c("feature","count_na")
+
+percent_missing<-.2
+limit_missing<-.2*nrow(test)
+useful_features<-subset(na_count,count_na<limit_missing)
+nrow(useful_features)
+useful_features<-as.vector(useful_features[c(1:nrow(useful_features)),1])
+useful_features
+useful_features<-useful_features[1:length(useful_features)-1]
+
+# Remove columns with missing value
+train1<-cbind(train[,useful_features],train$classe)
+dim(train1)
+colnames(train1)[60]<-"classe"
+train1$classe<-as.character(train1$classe)
+train1$classe[train1$classe == "A"] <- "0"
+train1$classe[train1$classe == "B"] <- "1"
+train1$classe[train1$classe == "C"] <- "2"
+train1$classe[train1$classe == "D"] <- "3"
+train1$classe[train1$classe == "E"] <- "4"
+train1$classe<-as.factor(train1$classe)
+
+#########################        Data Cleaning Ends        ############################
+
+
+########################      Train & Test data preparation starts      #######################
+set.seed(123)
+intrain<-createDataPartition(y=train1$classe,p=0.8,list = FALSE)
+training<-train1[intrain,]
+testing<-train1[-intrain,]
+
+########################      Train & Test data preparation ends      #######################
+
+
+
+#######################     Exploratory data analysis begins          ########################
+table(training$classe)
+featurePlot(x=training[,c("num_window","roll_belt","accel_dumbbell_z")],y=as.integer(training$classe),plot = "pairs")
+par(mfrow=c(2,2), mar=c(2,5,2,1), las=1, bty="n")
+boxplot(num_window~classe,data=training, main="classes num window data",xlab="classe", ylab="num_window")
+boxplot(roll_belt~classe,data=training, main="classes roll_belt data",xlab="classe", ylab="roll_belt")
+boxplot(magnet_dumbbell_x~classe,data=training, main="classes magnet_dumbbell_x data",xlab="classe", ylab="magnet_dumbbell_x")
+boxplot(pitch_forearm~classe,data=training, main="classes pitch_forearm data",xlab="classe", ylab="pitch_forearm")
+boxplot(accel_dumbbell_z~classe,data=training, main="classes accel_dumbbell_z data",xlab="classe", ylab="accel_dumbbell_z")
+
+
+#######################     Exploratory data analysis ends          ########################
+
+######################     Model training and Cross Validation starts    ##########################
+training1<-training[,-c(1:2)]
+testing1<-testing[,-c(1:2)]
+
+cvCtrl <- trainControl(method = "repeatedcv", repeats = 3)
+modfit<-train(classe ~.,method="rpart",data=training1,tuneLength = 50,trControl = cvCtrl)
+plot(varImp(modfit), top = 20)
+
+######################     Model training and Cross Validation ends    ##########################
+
+
+######################     Classification and out of sample error calculation starts    ##########################
+tree.pred.modfit = predict(modfit, testing1)
+cmatrix.modfit<-table(tree.pred.modfit, testing1$classe)
+output.modfit<-confusionMatrix(cmatrix.modfit)
+output.modfit
+
+
+######################     Classification and out of sample error calculation ends    ##########################
+
+
+
+###################### final model building on overall train data   starts       ########################
+train2<-train1[,-c(1:2)]
+
+cvCtrl_final <- trainControl(method = "repeatedcv", repeats = 3)
+modfit_final<-train(classe ~.,method="rpart",data=train2,tuneLength = 50,trControl = cvCtrl_final)
+
+plot(varImp(modfit_final), top = 20)
+
+###################### final model building on overall train data   ends       ########################
+
+
+######################  Classification for given test data starts         ##########################
+
+tree.pred.modfit = predict(modfit_final, test)
+tree.pred.modfit
+
+######################  Classification for given test data ends         ##########################
+
+```
+
