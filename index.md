@@ -22,7 +22,7 @@ Load train and test data csv files in R
 
 ### Data Cleaning and data preparation for exploratory data analysis: 
 As final prediction is required for test data which
-has 20 rows, test data should have sufficient values for independent variables and hence, only those features have been considered which has less than 20% of missing values. Also, classe has been renamed from 0 to 4 for A to E respectively.
+has 20 rows, test data should have sufficient values for independent variables and hence, only those features have been considered which has less than 20% of missing values.
 
 ### Training and Validation data creation: 
 Training and Validation data set has been created with 80:20 ratio
@@ -280,12 +280,6 @@ dim(train1)
 
 ```r
 colnames(train1)[60]<-"classe"
-train1$classe<-as.character(train1$classe)
-train1$classe[train1$classe == "A"] <- "0"
-train1$classe[train1$classe == "B"] <- "1"
-train1$classe[train1$classe == "C"] <- "2"
-train1$classe[train1$classe == "D"] <- "3"
-train1$classe[train1$classe == "E"] <- "4"
 train1$classe<-as.factor(train1$classe)
 
 #########################        Data Cleaning Ends        ############################
@@ -307,12 +301,12 @@ table(training$classe)
 
 ```
 ## 
-##    0    1    2    3    4 
+##    A    B    C    D    E 
 ## 4464 3038 2738 2573 2886
 ```
 
 ```r
-featurePlot(x=training[,c("num_window","roll_belt","accel_dumbbell_z")],y=as.integer(training$classe),plot = "pairs")
+featurePlot(x=training[,c("num_window","roll_belt","accel_dumbbell_z")],y=training$classe,plot = "pairs")
 ```
 
 ![](index_files/figure-html/unnamed-chunk-1-1.png)
@@ -355,12 +349,12 @@ output.modfit
 ## Confusion Matrix and Statistics
 ## 
 ##                 
-## tree.pred.modfit    0    1    2    3    4
-##                0 1114   10    1    0    1
-##                1    0  747    2    0    0
-##                2    0    2  674    1    1
-##                3    0    0    3  637    3
-##                4    2    0    4    5  716
+## tree.pred.modfit    A    B    C    D    E
+##                A 1114   10    1    0    1
+##                B    0  747    2    0    0
+##                C    0    2  674    1    1
+##                D    0    0    3  637    3
+##                E    2    0    4    5  716
 ## 
 ## Overall Statistics
 ##                                           
@@ -374,7 +368,7 @@ output.modfit
 ## 
 ## Statistics by Class:
 ## 
-##                      Class: 0 Class: 1 Class: 2 Class: 3 Class: 4
+##                      Class: A Class: B Class: C Class: D Class: E
 ## Sensitivity            0.9982   0.9842   0.9854   0.9907   0.9931
 ## Specificity            0.9957   0.9994   0.9988   0.9982   0.9966
 ## Pos Pred Value         0.9893   0.9973   0.9941   0.9907   0.9849
@@ -408,8 +402,8 @@ tree.pred.modfit
 ```
 
 ```
-##  [1] 1 0 1 0 0 4 3 1 0 0 1 2 1 0 4 4 0 1 1 1
-## Levels: 0 1 2 3 4
+##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
 ```
 
 ```r

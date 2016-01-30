@@ -27,7 +27,7 @@ Load train and test data csv files in R
 
 ### Data Cleaning and data preparation for exploratory data analysis: 
 As final prediction is required for test data which
-has 20 rows, test data should have sufficient values for independent variables and hence, only those features have been considered which has less than 20% of missing values. Also, classe has been renamed from 0 to 4 for A to E respectively.
+has 20 rows, test data should have sufficient values for independent variables and hence, only those features have been considered which has less than 20% of missing values.
 
 ### Training and Validation data creation: 
 Training and Validation data set has been created with 80:20 ratio
@@ -96,12 +96,6 @@ useful_features<-useful_features[1:length(useful_features)-1]
 train1<-cbind(train[,useful_features],train$classe)
 dim(train1)
 colnames(train1)[60]<-"classe"
-train1$classe<-as.character(train1$classe)
-train1$classe[train1$classe == "A"] <- "0"
-train1$classe[train1$classe == "B"] <- "1"
-train1$classe[train1$classe == "C"] <- "2"
-train1$classe[train1$classe == "D"] <- "3"
-train1$classe[train1$classe == "E"] <- "4"
 train1$classe<-as.factor(train1$classe)
 
 #########################        Data Cleaning Ends        ############################
@@ -119,7 +113,7 @@ testing<-train1[-intrain,]
 
 #######################     Exploratory data analysis begins          ########################
 table(training$classe)
-featurePlot(x=training[,c("num_window","roll_belt","accel_dumbbell_z")],y=as.integer(training$classe),plot = "pairs")
+featurePlot(x=training[,c("num_window","roll_belt","accel_dumbbell_z")],y=training$classe,plot = "pairs")
 par(mfrow=c(2,2), mar=c(2,5,2,1), las=1, bty="n")
 boxplot(num_window~classe,data=training, main="classes num window data",xlab="classe", ylab="num_window")
 boxplot(roll_belt~classe,data=training, main="classes roll_belt data",xlab="classe", ylab="roll_belt")
